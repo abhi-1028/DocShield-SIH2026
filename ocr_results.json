@@ -1,0 +1,56 @@
+[
+    {
+        "text": "SAMPLE DOCUMENT",
+        "box": [
+            43,
+            32,
+            296,
+            64
+        ]
+    },
+    {
+        "text": "NOT A REAL DOCUMENT",
+        "box": [
+            42,
+            93,
+            344,
+            124
+        ]
+    },
+    {
+        "text": "Name: Rahul Kumar",
+        "box": [
+            41,
+            152,
+            272,
+            187
+        ]
+    },
+    {
+        "text": "ID: TEST-123456",
+        "box": [
+            41,
+            214,
+            221,
+            250
+        ]
+    },
+    {
+        "text": "DOB: 01/01/2000",
+        "box": [
+            42,
+            275,
+            231,
+            310
+        ]
+    },
+    {
+        "text": "This document is for testing only",
+        "box": [
+            43,
+            333,
+            402,
+            371
+        ]
+    }
+]
