@@ -225,3 +225,5 @@ desktop.ini
 
 # Accidental root-level dependency file
 /requirements.txt
+# Temporary local reference document used during development
+backend/reference_documents/reference.jpeg
