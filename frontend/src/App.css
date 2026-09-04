@@ -1568,3 +1568,8 @@ footer {
     width: 100%;
   }
 }
+
+.field-status.not-extracted {
+  background: #f1f5f9;
+  color: #64748b;
+}

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import "./App.css";
 
+const API_BASE_URL = "http://127.0.0.1:8000";
+
 const analysisSteps = [
   {
     title: "OCR Text Extraction",
@@ -29,185 +31,6 @@ const analysisSteps = [
   },
 ];
 
-const demoResults = {
-  clear: {
-    riskScore: 8,
-    decision: "CLEAR",
-    recommendation: "No significant indicators detected",
-    description:
-      "The submitted document is consistent with the authorized reference across the evaluated evidence signals.",
-    evidence: [
-      {
-        label: "Reference Comparison",
-        score: 3,
-        maxScore: 40,
-        status: "low",
-      },
-      {
-        label: "OCR Consistency",
-        score: 2,
-        maxScore: 30,
-        status: "low",
-      },
-      {
-        label: "Tamper Indicators",
-        score: 1,
-        maxScore: 20,
-        status: "low",
-      },
-      {
-        label: "Document Rules",
-        score: 2,
-        maxScore: 10,
-        status: "low",
-      },
-    ],
-    indicators: [
-      "No significant visual difference detected",
-      "Extracted fields are consistent with the reference",
-      "Document format and field rules passed",
-    ],
-    extractedFields: [
-      {
-        field: "Name",
-        reference: "ARJUN SHARMA",
-        submitted: "ARJUN SHARMA",
-        status: "match",
-      },
-      {
-        field: "Date of Birth",
-        reference: "14/08/2002",
-        submitted: "14/08/2002",
-        status: "match",
-      },
-      {
-        field: "PAN Number",
-        reference: "ABCDE1234F",
-        submitted: "ABCDE1234F",
-        status: "match",
-      },
-    ],
-  },
-
-  review: {
-    riskScore: 47,
-    decision: "MANUAL REVIEW",
-    recommendation: "Review recommended before acceptance",
-    description:
-      "The document contains a limited inconsistency that should be checked by an authorized human verifier.",
-    evidence: [
-      {
-        label: "Reference Comparison",
-        score: 17,
-        maxScore: 40,
-        status: "medium",
-      },
-      {
-        label: "OCR Consistency",
-        score: 15,
-        maxScore: 30,
-        status: "medium",
-      },
-      {
-        label: "Tamper Indicators",
-        score: 10,
-        maxScore: 20,
-        status: "medium",
-      },
-      {
-        label: "Document Rules",
-        score: 5,
-        maxScore: 10,
-        status: "low",
-      },
-    ],
-    indicators: [
-      "Date of birth differs from the authorized reference",
-      "Localized visual difference detected",
-      "Additional verification recommended",
-    ],
-    extractedFields: [
-      {
-        field: "Name",
-        reference: "ARJUN SHARMA",
-        submitted: "ARJUN SHARMA",
-        status: "match",
-      },
-      {
-        field: "Date of Birth",
-        reference: "14/08/2002",
-        submitted: "14/08/2003",
-        status: "mismatch",
-      },
-      {
-        field: "PAN Number",
-        reference: "ABCDE1234F",
-        submitted: "ABCDE1234F",
-        status: "match",
-      },
-    ],
-  },
-
-  high: {
-    riskScore: 88,
-    decision: "HIGH RISK",
-    recommendation: "Manual verification required",
-    description:
-      "Multiple evidence signals require this document to be reviewed by an authorized human verifier.",
-    evidence: [
-      {
-        label: "Reference Comparison",
-        score: 35,
-        maxScore: 40,
-        status: "high",
-      },
-      {
-        label: "OCR Consistency",
-        score: 25,
-        maxScore: 30,
-        status: "medium",
-      },
-      {
-        label: "Tamper Indicators",
-        score: 20,
-        maxScore: 20,
-        status: "high",
-      },
-      {
-        label: "Document Rules",
-        score: 8,
-        maxScore: 10,
-        status: "low",
-      },
-    ],
-    indicators: [
-      "Date of birth differs from the authorized reference",
-      "Localized visual difference detected in a document field",
-      "Text region shows possible modification",
-    ],
-    extractedFields: [
-      {
-        field: "Name",
-        reference: "ARJUN SHARMA",
-        submitted: "ARJUN SHARMA",
-        status: "match",
-      },
-      {
-        field: "Date of Birth",
-        reference: "14/08/2002",
-        submitted: "14/08/2003",
-        status: "mismatch",
-      },
-      {
-        field: "PAN Number",
-        reference: "ABCDE1234F",
-        submitted: "ABCDE1234F",
-        status: "match",
-      },
-    ],
-  },
-};
-
 function getRiskClass(decision) {
   if (decision === "CLEAR") {
     return "clear";
@@ -217,7 +40,70 @@ function getRiskClass(decision) {
     return "review";
   }
 
-  return "high";
+  if (decision === "HIGH RISK") {
+    return "high";
+  }
+
+  if (decision === "INVALID DOCUMENT") {
+    return "invalid";
+  }
+
+  return "";
+}
+
+function getEvidenceStatus(score, maxScore) {
+  if (!maxScore || maxScore <= 0) {
+    return "low";
+  }
+
+  const percentage = (score / maxScore) * 100;
+
+  if (percentage >= 70) {
+    return "high";
+  }
+
+  if (percentage >= 30) {
+    return "medium";
+  }
+
+  return "low";
+}
+
+function formatFieldName(field) {
+  const labels = {
+    name: "Name",
+    dob: "Date of Birth",
+    id_number: "ID Number",
+    gender: "Gender",
+  };
+
+  return (
+    labels[field] ||
+    String(field || "Field")
+      .replace(/_/g, " ")
+      .replace(/\b\w/g, (letter) => letter.toUpperCase())
+  );
+}
+
+function getFieldStatus(item) {
+  if (
+    item.submitted === null ||
+    item.submitted === undefined ||
+    String(item.submitted).trim() === ""
+  ) {
+    return "not-extracted";
+  }
+
+  if (
+    item.status === "match" ||
+    item.status === "matched" ||
+    item.match === true ||
+    item.is_match === true
+  ) {
+    return "match";
+  }
+
+  return "mismatch";
 }
 
 function App() {
@@ -226,8 +112,16 @@ function App() {
   const [currentStep, setCurrentStep] = useState(-1);
   const [analysisComplete, setAnalysisComplete] = useState(false);
   const [showResults, setShowResults] = useState(false);
-  const [demoMode, setDemoMode] = useState("high");
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [analysisError, setAnalysisError] = useState("");
 
+  /*
+   * Visual analysis animation.
+   *
+   * The actual completion of the analysis is controlled by the backend
+   * response in handleAnalyze(). This animation only represents the
+   * processing stages in the UI.
+   */
   useEffect(() => {
     if (!isAnalyzing) {
       return undefined;
@@ -242,13 +136,6 @@ function App() {
 
       if (stepIndex < analysisSteps.length) {
         setCurrentStep(stepIndex);
-      } else {
-        clearInterval(interval);
-
-        setTimeout(() => {
-          setIsAnalyzing(false);
-          setAnalysisComplete(true);
-        }, 700);
       }
     }, 1100);
 
@@ -266,17 +153,119 @@ function App() {
     setAnalysisComplete(false);
     setShowResults(false);
     setCurrentStep(-1);
+    setAnalysisResult(null);
+    setAnalysisError("");
   };
 
-  const handleAnalyze = () => {
+  const handleAnalyze = async () => {
     if (!submittedFile || isAnalyzing) {
       return;
     }
 
     setAnalysisComplete(false);
     setShowResults(false);
+    setAnalysisError("");
+    setAnalysisResult(null);
     setCurrentStep(0);
     setIsAnalyzing(true);
+
+    try {
+      /*
+       * Step 1: Upload submitted document
+       */
+      const formData = new FormData();
+      formData.append("file", submittedFile);
+
+      const uploadResponse = await fetch(
+        `${API_BASE_URL}/api/upload`,
+        {
+          method: "POST",
+          body: formData,
+        }
+      );
+
+      if (!uploadResponse.ok) {
+        let errorMessage = "Document upload failed.";
+
+        try {
+          const errorData = await uploadResponse.json();
+
+          if (errorData?.detail) {
+            errorMessage =
+              typeof errorData.detail === "string"
+                ? errorData.detail
+                : "Document upload failed.";
+          }
+        } catch {
+          // Keep the default error message.
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const uploadData = await uploadResponse.json();
+
+      if (!uploadData?.document_id) {
+        throw new Error(
+          "Upload succeeded, but the backend did not return a document ID."
+        );
+      }
+
+      /*
+       * Step 2: Screen uploaded document
+       */
+      const screenResponse = await fetch(
+        `${API_BASE_URL}/api/screen/${uploadData.document_id}`,
+        {
+          method: "POST",
+        }
+      );
+
+      if (!screenResponse.ok) {
+        let errorMessage = "Document screening failed.";
+
+        try {
+          const errorData = await screenResponse.json();
+
+          if (errorData?.detail) {
+            errorMessage =
+              typeof errorData.detail === "string"
+                ? errorData.detail
+                : "Document screening failed.";
+          }
+        } catch {
+          // Keep the default error message.
+        }
+
+        throw new Error(errorMessage);
+      }
+
+      const screenData = await screenResponse.json();
+
+      /*
+       * Store the real backend result.
+       */
+      setAnalysisResult(screenData);
+
+      /*
+       * Complete the visual pipeline only after the backend
+       * has successfully returned the screening result.
+       */
+      setCurrentStep(analysisSteps.length - 1);
+      setIsAnalyzing(false);
+      setAnalysisComplete(true);
+    } catch (error) {
+      console.error("Analysis error:", error);
+
+      setAnalysisError(
+        error?.message ||
+          "Something went wrong during document analysis."
+      );
+
+      setIsAnalyzing(false);
+      setAnalysisComplete(false);
+      setCurrentStep(-1);
+    }
   };
 
   const handleReset = () => {
@@ -285,12 +274,178 @@ function App() {
     setAnalysisComplete(false);
     setShowResults(false);
     setCurrentStep(-1);
+    setAnalysisResult(null);
+    setAnalysisError("");
   };
 
-  const selectedResult = demoResults[demoMode];
-  const riskClass = getRiskClass(selectedResult.decision);
+  const riskClass = analysisResult
+    ? getRiskClass(analysisResult.decision)
+    : "";
 
-  if (showResults) {
+  /*
+   * Detect invalid-document result.
+   */
+  const isInvalidDocument =
+    analysisResult?.decision === "INVALID DOCUMENT";
+
+  /*
+   * Prepare backend evidence data for the existing UI.
+   *
+   * Invalid documents should not be presented as if they
+   * generated meaningful fraud-risk evidence.
+   */
+  const evidenceBreakdown =
+    analysisResult?.evidence_breakdown || {};
+
+  const evidenceItems = isInvalidDocument
+    ? [
+        {
+          label: "Document Validity",
+          score: 0,
+          maxScore: 40,
+        },
+        {
+          label: "OCR Screening",
+          score: 0,
+          maxScore: 40,
+        },
+        {
+          label: "Tamper Analysis",
+          score: 0,
+          maxScore: 20,
+        },
+      ]
+    : [
+        {
+          label: "Reference Comparison",
+          score: Number(
+            evidenceBreakdown.visual_risk_points ?? 0
+          ),
+          maxScore: 40,
+        },
+        {
+          label: "OCR Consistency",
+          score: Number(
+            evidenceBreakdown.field_mismatch_points ?? 0
+          ),
+          maxScore: 40,
+        },
+        {
+          label: "Tamper Indicators",
+          score: Number(
+            evidenceBreakdown.tamper_points ?? 0
+          ),
+          maxScore: 20,
+        },
+      ];
+
+  /*
+   * Build indicators from actual backend evidence.
+   */
+  const indicators = [];
+
+  if (isInvalidDocument) {
+    indicators.push(
+      "The uploaded image did not contain enough recognizable document information for reliable screening."
+    );
+
+    indicators.push(
+      "Fraud-risk analysis was not performed because the input was not recognized as a valid document."
+    );
+
+    indicators.push(
+      "Please upload a clear PNG, JPG or JPEG document image containing readable document fields."
+    );
+  } else {
+    if (analysisResult?.field_comparison) {
+      const mismatchCount =
+        analysisResult.field_comparison.mismatches?.length || 0;
+
+      if (mismatchCount > 0) {
+        indicators.push(
+          `${mismatchCount} OCR field mismatch${
+            mismatchCount === 1 ? "" : "es"
+          } detected against the authorized reference.`
+        );
+      } else {
+        indicators.push(
+          "OCR-extracted document fields are consistent with the authorized reference."
+        );
+      }
+    }
+
+    const suspiciousRegionCount = Number(
+      analysisResult?.tamper_evidence
+        ?.suspicious_region_count ?? 0
+    );
+
+    if (suspiciousRegionCount > 0) {
+      indicators.push(
+        `${suspiciousRegionCount} suspicious visual region${
+          suspiciousRegionCount === 1 ? "" : "s"
+        } detected during tamper analysis.`
+      );
+    } else {
+      indicators.push(
+        "No suspicious visual regions were detected by the current tamper-analysis pipeline."
+      );
+    }
+
+    const differencePercentage = Number(
+      analysisResult?.difference_percentage ?? 0
+    );
+
+    const similarityScore = Number(
+      analysisResult?.similarity_score ?? 0
+    );
+
+    if (differencePercentage > 0) {
+      indicators.push(
+        `Visual comparison detected ${differencePercentage.toFixed(
+          2
+        )}% image difference, with ${similarityScore.toFixed(
+          2
+        )}% similarity to the authorized reference.`
+      );
+    } else {
+      indicators.push(
+        `Visual comparison shows ${similarityScore.toFixed(
+          2
+        )}% similarity to the authorized reference.`
+      );
+    }
+
+    if (analysisResult?.message) {
+      indicators.push(analysisResult.message);
+    }
+  }
+
+  /*
+   * OCR field comparison from backend.
+   *
+   * The backend returns:
+   * field_comparison.comparisons
+   */
+  const extractedFields = Object.entries(
+    analysisResult?.field_comparison?.comparisons || {}
+  ).map(([field, comparison]) => ({
+    field,
+    ...comparison,
+  }));
+
+  /*
+   * Tamper-highlighted image returned by backend.
+   */
+  const highlightedImageUrl =
+    analysisResult?.tamper_evidence
+      ?.highlighted_image_url
+      ? `${API_BASE_URL}${analysisResult.tamper_evidence.highlighted_image_url}`
+      : null;
+
+  /*
+   * Results page
+   */
+  if (showResults && analysisResult) {
     return (
       <div className="app-shell">
         <nav className="navbar">
@@ -321,63 +476,111 @@ function App() {
               ← Back to Analysis
             </button>
 
-            <span>SCREENING RESULT • PAN-REF-001</span>
+            <span>
+              SCREENING RESULT • PAN-REF-001
+            </span>
           </section>
 
           <section className={`result-hero ${riskClass}`}>
             <div>
-              <span className="section-label">SCREENING DECISION</span>
+              <span className="section-label">
+                SCREENING DECISION
+              </span>
 
               <h1>
-                {selectedResult.decision === "CLEAR" && (
+                {analysisResult.decision === "CLEAR" && (
                   <>
                     Document appears
                     <span> consistent.</span>
                   </>
                 )}
 
-                {selectedResult.decision === "MANUAL REVIEW" && (
+                {analysisResult.decision === "MANUAL REVIEW" && (
                   <>
                     Review
                     <span> recommended.</span>
                   </>
                 )}
 
-                {selectedResult.decision === "HIGH RISK" && (
+                {analysisResult.decision === "HIGH RISK" && (
                   <>
                     Further Verification
                     <span> Required.</span>
                   </>
                 )}
+
+                {analysisResult.decision ===
+                  "INVALID DOCUMENT" && (
+                  <>
+                    Invalid
+                    <span> Document.</span>
+                  </>
+                )}
+
+                {![
+                  "CLEAR",
+                  "MANUAL REVIEW",
+                  "HIGH RISK",
+                  "INVALID DOCUMENT",
+                ].includes(analysisResult.decision) && (
+                  <>
+                    Screening
+                    <span> Result Available.</span>
+                  </>
+                )}
               </h1>
 
-              <p>{selectedResult.description}</p>
+              <p>
+                {analysisResult.message ||
+                  "The screening pipeline has completed its analysis."}
+              </p>
             </div>
 
             <div className="risk-score-card">
               <span>RISK SCORE</span>
 
               <div className="risk-number">
-                <strong>{selectedResult.riskScore}</strong>
+                <strong>
+                  {Number(
+                    analysisResult.risk_score ?? 0
+                  ).toFixed(1)}
+                </strong>
+
                 <small>/ 100</small>
               </div>
 
-              <div className="risk-label">{selectedResult.decision}</div>
+              <div className="risk-label">
+                {analysisResult.decision}
+              </div>
             </div>
           </section>
 
-          <section className={`recommendation-banner ${riskClass}`}>
+          <section
+            className={`recommendation-banner ${riskClass}`}
+          >
             <div className="recommendation-icon">
-              {selectedResult.decision === "CLEAR"
+              {analysisResult.decision === "CLEAR"
                 ? "✓"
-                : selectedResult.decision === "MANUAL REVIEW"
-                  ? "!"
+                : analysisResult.decision ===
+                  "INVALID DOCUMENT"
+                  ? "⚠"
                   : "!"}
             </div>
 
             <div>
               <strong>Recommendation</strong>
-              <p>{selectedResult.recommendation}</p>
+
+              <p>
+                {analysisResult.decision === "CLEAR"
+                  ? "The submitted document appears consistent with the authorized reference. Proceed subject to normal human verification procedures."
+                  : analysisResult.decision ===
+                    "MANUAL REVIEW"
+                    ? "Additional human verification is recommended before accepting the submitted document."
+                    : analysisResult.decision ===
+                      "INVALID DOCUMENT"
+                    ? "The uploaded image could not be recognized as a valid document. Please upload a clear document image containing readable document information."
+                    : "Further verification is required. The detected screening indicators should be reviewed by an authorized human verifier."}
+              </p>
             </div>
           </section>
 
@@ -385,54 +588,109 @@ function App() {
             <div className="result-panel evidence-panel">
               <div className="panel-heading">
                 <div>
-                  <span className="section-label">EVIDENCE BREAKDOWN</span>
-                  <h2>Why was this result generated?</h2>
+                  <span className="section-label">
+                    EVIDENCE BREAKDOWN
+                  </span>
+
+                  <h2>
+                    {isInvalidDocument
+                      ? "Why was this input rejected?"
+                      : "Why was this result generated?"}
+                  </h2>
                 </div>
 
                 <span className="panel-total">
-                  {selectedResult.riskScore} / 100
+                  {Number(
+                    analysisResult.risk_score ?? 0
+                  ).toFixed(1)}{" "}
+                  / 100
                 </span>
               </div>
 
               <div className="evidence-list">
-                {selectedResult.evidence.map((item) => {
-                  const percentage = (item.score / item.maxScore) * 100;
+                {evidenceItems.map((item) => {
+                  const percentage =
+                    item.maxScore > 0
+                      ? Math.min(
+                          100,
+                          Math.max(
+                            0,
+                            (item.score / item.maxScore) *
+                              100
+                          )
+                        )
+                      : 0;
+
+                  const status = getEvidenceStatus(
+                    item.score,
+                    item.maxScore
+                  );
 
                   return (
-                    <div className="evidence-row" key={item.label}>
+                    <div
+                      className="evidence-row"
+                      key={item.label}
+                    >
                       <div className="evidence-row-top">
                         <span>{item.label}</span>
 
                         <strong>
-                          {item.score}/{item.maxScore}
+                          {item.score.toFixed(1)}/
+                          {item.maxScore}
                         </strong>
                       </div>
 
                       <div className="evidence-bar">
                         <div
-                          className={`evidence-fill ${item.status}`}
-                          style={{ width: `${percentage}%` }}
+                          className={`evidence-fill ${status}`}
+                          style={{
+                            width: `${percentage}%`,
+                          }}
                         ></div>
                       </div>
                     </div>
                   );
                 })}
               </div>
+
+              {isInvalidDocument && (
+                <p
+                  style={{
+                    marginTop: "20px",
+                    color: "#64748b",
+                    fontSize: "14px",
+                    lineHeight: "1.6",
+                  }}
+                >
+                  Fraud-risk scoring was skipped because the
+                  uploaded image did not contain enough
+                  recognizable document information.
+                </p>
+              )}
             </div>
 
             <div className="result-panel indicators-panel">
               <div className="panel-heading">
                 <div>
-                  <span className="section-label">DETECTED INDICATORS</span>
-                  <h2>Evidence summary</h2>
+                  <span className="section-label">
+                    {isInvalidDocument
+                      ? "INPUT VALIDATION"
+                      : "DETECTED INDICATORS"}
+                  </span>
+
+                  <h2>
+                    {isInvalidDocument
+                      ? "Why can't this image be screened?"
+                      : "Evidence summary"}
+                  </h2>
                 </div>
               </div>
 
               <div className="indicator-list">
-                {selectedResult.indicators.map((indicator, index) => (
+                {indicators.map((indicator, index) => (
                   <div
                     className={`indicator-item ${riskClass}`}
-                    key={indicator}
+                    key={`${indicator}-${index}`}
                   >
                     <span>{index + 1}</span>
                     <p>{indicator}</p>
@@ -445,78 +703,270 @@ function App() {
           <section className="result-panel field-comparison-panel">
             <div className="panel-heading">
               <div>
-                <span className="section-label">OCR FIELD COMPARISON</span>
-                <h2>Reference vs Submitted Document</h2>
+                <span className="section-label">
+                  OCR FIELD COMPARISON
+                </span>
+
+                <h2>
+                  Reference vs Submitted Document
+                </h2>
               </div>
 
-              <span className="comparison-badge">PAN-REF-001</span>
+              <span className="comparison-badge">
+                PAN-REF-001
+              </span>
             </div>
 
-            <div className="comparison-table">
-              <div className="comparison-table-header">
-                <span>FIELD</span>
-                <span>AUTHORIZED REFERENCE</span>
-                <span>SUBMITTED DOCUMENT</span>
-                <span>STATUS</span>
+            {isInvalidDocument ? (
+              <div
+                style={{
+                  padding: "28px",
+                  textAlign: "center",
+                  color: "#64748b",
+                }}
+              >
+                <strong
+                  style={{
+                    display: "block",
+                    marginBottom: "8px",
+                    color: "#334155",
+                  }}
+                >
+                  Document fields unavailable
+                </strong>
+
+                <span>
+                  The uploaded image did not contain enough
+                  recognizable document information for field
+                  comparison.
+                </span>
               </div>
-
-              {selectedResult.extractedFields.map((item) => (
-                <div className="comparison-table-row" key={item.field}>
-                  <strong>{item.field}</strong>
-
-                  <span>{item.reference}</span>
-
-                  <span>{item.submitted}</span>
-
-                  <span
-                    className={`field-status ${
-                      item.status === "match" ? "match" : "mismatch"
-                    }`}
-                  >
-                    {item.status === "match" ? "✓ Match" : "⚠ Mismatch"}
-                  </span>
+            ) : (
+              <div className="comparison-table">
+                <div className="comparison-table-header">
+                  <span>FIELD</span>
+                  <span>AUTHORIZED REFERENCE</span>
+                  <span>SUBMITTED DOCUMENT</span>
+                  <span>STATUS</span>
                 </div>
-              ))}
-            </div>
+
+                {extractedFields.length > 0 ? (
+                  extractedFields.map((item, index) => {
+                    const fieldName =
+                      item.field ||
+                      item.name ||
+                      `field_${index}`;
+
+                    const status = getFieldStatus(item);
+
+                    return (
+                      <div
+                        className="comparison-table-row"
+                        key={`${fieldName}-${index}`}
+                      >
+                        <strong>
+                          {formatFieldName(fieldName)}
+                        </strong>
+
+                        <span>
+                          {item.reference ??
+                            item.reference_value ??
+                            "—"}
+                        </span>
+
+                        <span>
+                          {item.submitted ??
+                            item.submitted_value ??
+                            "—"}
+                        </span>
+
+                        <span
+                          className={`field-status ${
+                            status === "match"
+                              ? "match"
+                              : status ===
+                                "not-extracted"
+                              ? "not-extracted"
+                              : "mismatch"
+                          }`}
+                        >
+                          {status === "match"
+                            ? "✓ Match"
+                            : status ===
+                              "not-extracted"
+                            ? "— Not Extracted"
+                            : "⚠ Mismatch"}
+                        </span>
+                      </div>
+                    );
+                  })
+                ) : (
+                  <div className="comparison-table-row">
+                    <strong>OCR Fields</strong>
+
+                    <span>—</span>
+
+                    <span>
+                      No structured fields were extracted.
+                    </span>
+
+                    <span className="field-status mismatch">
+                      ⚠ Review
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
           </section>
+
+          {highlightedImageUrl && !isInvalidDocument && (
+            <section className="result-panel">
+              <div className="panel-heading">
+                <div>
+                  <span className="section-label">
+                    VISUAL ANALYSIS
+                  </span>
+
+                  <h2>
+                    Suspicious Region Highlight
+                  </h2>
+                </div>
+
+                <span className="comparison-badge">
+                  {analysisResult?.tamper_evidence
+                    ?.suspicious_region_count ?? 0}{" "}
+                  region
+                  {Number(
+                    analysisResult?.tamper_evidence
+                      ?.suspicious_region_count ?? 0
+                  ) === 1
+                    ? ""
+                    : "s"}
+                </span>
+              </div>
+
+              <div
+                style={{
+                  marginTop: "20px",
+                  textAlign: "center",
+                }}
+              >
+                <img
+                  src={highlightedImageUrl}
+                  alt="Tamper analysis highlighting suspicious regions"
+                  style={{
+                    maxWidth: "100%",
+                    maxHeight: "600px",
+                    objectFit: "contain",
+                    borderRadius: "12px",
+                  }}
+                />
+              </div>
+            </section>
+          )}
+
+          {isInvalidDocument && (
+            <section className="result-panel">
+              <div className="panel-heading">
+                <div>
+                  <span className="section-label">
+                    NEXT STEP
+                  </span>
+
+                  <h2>
+                    Upload a valid document
+                  </h2>
+                </div>
+              </div>
+
+              <div
+                style={{
+                  padding: "10px 0 4px",
+                  color: "#64748b",
+                  lineHeight: "1.7",
+                }}
+              >
+                <p>
+                  DocShield could not reliably identify the
+                  uploaded image as a document. For accurate
+                  screening, upload a clear image of the
+                  document containing readable text and
+                  document fields.
+                </p>
+              </div>
+            </section>
+          )}
 
           <section className="result-panel document-summary-panel">
             <div className="panel-heading">
               <div>
-                <span className="section-label">SCREENING SUMMARY</span>
-                <h2>Document analysis overview</h2>
+                <span className="section-label">
+                  SCREENING SUMMARY
+                </span>
+
+                <h2>
+                  Document analysis overview
+                </h2>
               </div>
             </div>
 
             <div className="summary-grid">
               <div>
                 <span>Reference</span>
+
                 <strong>PAN-REF-001</strong>
-                <small>Authorized local prototype repository</small>
+
+                <small>
+                  Authorized local prototype repository
+                </small>
               </div>
 
               <div>
                 <span>Submitted File</span>
-                <strong>{submittedFile?.name || "submitted_document"}</strong>
-                <small>Document screened in current session</small>
+
+                <strong>
+                  {submittedFile?.name ||
+                    "submitted_document"}
+                </strong>
+
+                <small>
+                  Document screened in current session
+                </small>
               </div>
 
               <div>
                 <span>Decision</span>
-                <strong className={`${riskClass}-risk-text`}>
-                  {selectedResult.decision}
+
+                <strong
+                  className={`${riskClass}-risk-text`}
+                >
+                  {analysisResult.decision}
                 </strong>
-                <small>Evidence-based screening recommendation</small>
+
+                <small>
+                  {isInvalidDocument
+                    ? "Input validation result"
+                    : "Evidence-based screening recommendation"}
+                </small>
               </div>
 
               <div>
                 <span>Final Action</span>
+
                 <strong>
-                  {selectedResult.decision === "CLEAR"
+                  {analysisResult.decision === "CLEAR"
                     ? "Proceed"
+                    : analysisResult.decision ===
+                      "INVALID DOCUMENT"
+                    ? "Upload Valid Document"
                     : "Manual Review"}
                 </strong>
-                <small>Authorized human verification remains available</small>
+
+                <small>
+                  {isInvalidDocument
+                    ? "Provide a recognizable document image"
+                    : "Authorized human verification remains available"}
+                </small>
               </div>
             </div>
           </section>
@@ -525,14 +975,20 @@ function App() {
             <div className="shield">🛡</div>
 
             <div>
-              <h3>Explainable Decision-Support</h3>
+              <h3>
+                Explainable Decision-Support
+              </h3>
 
               <p>
-                DocShield provides an evidence-based screening recommendation.
-                A high-risk or manual-review result indicates document
-                indicators requiring further verification. It does not
-                establish fraud or legally authenticate the document. Final
-                decisions remain with the authorized human verifier.
+                DocShield provides an evidence-based
+                screening recommendation. A high-risk or
+                manual-review result indicates document
+                indicators requiring further verification.
+                An invalid-document result means the input
+                could not be reliably screened. The system
+                does not establish fraud or legally
+                authenticate a document. Final decisions
+                remain with the authorized human verifier.
               </p>
             </div>
           </section>
@@ -557,7 +1013,10 @@ function App() {
         </main>
 
         <footer>
-          <p>DocShield-SIH2026 • Explainable Document Screening Prototype</p>
+          <p>
+            DocShield-SIH2026 • Explainable Document
+            Screening Prototype
+          </p>
         </footer>
       </div>
     );
@@ -585,7 +1044,9 @@ function App() {
 
       <main>
         <section className="hero">
-          <div className="hero-badge">SIH 2026 • MHA</div>
+          <div className="hero-badge">
+            SIH 2026 • MHA
+          </div>
 
           <h1>
             Screen Documents.
@@ -593,10 +1054,11 @@ function App() {
           </h1>
 
           <p>
-            Upload a submitted document and compare it against an authorized
-            reference already stored in DocShield. Our evidence-based pipeline
-            combines OCR consistency, visual comparison, tamper indicators and
-            document rules.
+            Upload a submitted document and compare it
+            against an authorized reference already stored
+            in DocShield. Our evidence-based pipeline
+            combines OCR consistency, visual comparison,
+            tamper indicators and document rules.
           </p>
         </section>
 
@@ -608,21 +1070,33 @@ function App() {
 
           <div className="line"></div>
 
-          <div className={`step ${submittedFile ? "active" : ""}`}>
+          <div
+            className={`step ${
+              submittedFile ? "active" : ""
+            }`}
+          >
             <span>2</span>
             Upload Document
           </div>
 
           <div className="line"></div>
 
-          <div className={`step ${isAnalyzing ? "active" : ""}`}>
+          <div
+            className={`step ${
+              isAnalyzing ? "active" : ""
+            }`}
+          >
             <span>3</span>
             Analyze Evidence
           </div>
 
           <div className="line"></div>
 
-          <div className={`step ${analysisComplete ? "active" : ""}`}>
+          <div
+            className={`step ${
+              analysisComplete ? "active" : ""
+            }`}
+          >
             <span>4</span>
             Review Risk
           </div>
@@ -634,7 +1108,10 @@ function App() {
               <div className="icon-box blue">✓</div>
 
               <div>
-                <span className="card-label">AUTHORIZED REFERENCE</span>
+                <span className="card-label">
+                  AUTHORIZED REFERENCE
+                </span>
+
                 <h3>Reference Document</h3>
               </div>
             </div>
@@ -644,7 +1121,11 @@ function App() {
 
               <div>
                 <strong>Reference Available</strong>
-                <p>Loaded automatically from secure repository</p>
+
+                <p>
+                  Loaded automatically from secure
+                  repository
+                </p>
               </div>
             </div>
 
@@ -666,13 +1147,16 @@ function App() {
 
               <div>
                 <span>Status</span>
-                <strong className="verified">Verified Reference</strong>
+                <strong className="verified">
+                  Verified Reference
+                </strong>
               </div>
             </div>
 
             <div className="repository-note">
               <span>◉</span>
-              Authorized reference stored locally for prototype
+              Authorized reference stored locally for
+              prototype
             </div>
           </div>
 
@@ -681,7 +1165,10 @@ function App() {
               <div className="icon-box orange">🔍</div>
 
               <div>
-                <span className="card-label">DOCUMENT TO SCREEN</span>
+                <span className="card-label">
+                  DOCUMENT TO SCREEN
+                </span>
+
                 <h3>Submitted Document</h3>
               </div>
             </div>
@@ -720,39 +1207,34 @@ function App() {
               </div>
             )}
 
-            <div className="demo-mode">
-              <div>
-                <span>DEMO MODE</span>
-                <p>
-                  Temporary scenario selector. This will be replaced by the
-                  backend result after integration.
-                </p>
-              </div>
-
-              <select
-                value={demoMode}
-                onChange={(event) => setDemoMode(event.target.value)}
-                disabled={isAnalyzing}
+            {analysisError && (
+              <div
+                className="file-success"
+                style={{
+                  marginTop: "12px",
+                }}
               >
-                <option value="clear">Genuine — CLEAR</option>
-                <option value="review">Modified — MANUAL REVIEW</option>
-                <option value="high">Tampered — HIGH RISK</option>
-              </select>
-            </div>
+                <span>⚠</span>
+                {analysisError}
+              </div>
+            )}
           </div>
         </section>
 
         <section className="pipeline">
           <div className="pipeline-heading">
-            <span className="section-label">ANALYSIS PIPELINE</span>
+            <span className="section-label">
+              ANALYSIS PIPELINE
+            </span>
 
             <h2>
               Reference <span>vs</span> Submitted Document
             </h2>
 
             <p>
-              DocShield evaluates multiple independent evidence signals before
-              generating a screening recommendation.
+              DocShield evaluates multiple independent
+              evidence signals before generating a
+              screening recommendation.
             </p>
           </div>
 
@@ -801,13 +1283,17 @@ function App() {
           <section className="analysis-panel">
             <div className="analysis-header">
               <div>
-                <span className="section-label">LIVE ANALYSIS</span>
+                <span className="section-label">
+                  LIVE ANALYSIS
+                </span>
 
-                <h2>Analyzing Submitted Document</h2>
+                <h2>
+                  Analyzing Submitted Document
+                </h2>
 
                 <p>
-                  DocShield is evaluating the document against the authorized
-                  reference.
+                  DocShield is evaluating the document
+                  against the authorized reference.
                 </p>
               </div>
 
@@ -816,14 +1302,18 @@ function App() {
 
             <div className="analysis-steps">
               {analysisSteps.map((step, index) => {
-                const isComplete = index < currentStep;
-                const isCurrent = index === currentStep;
+                const isComplete =
+                  index < currentStep;
+                const isCurrent =
+                  index === currentStep;
 
                 return (
                   <div
                     className={`analysis-step ${
                       isComplete ? "complete" : ""
-                    } ${isCurrent ? "current" : ""}`}
+                    } ${
+                      isCurrent ? "current" : ""
+                    }`}
                     key={step.title}
                   >
                     <div className="analysis-step-icon">
@@ -837,15 +1327,17 @@ function App() {
                         {isCurrent
                           ? "Processing..."
                           : isComplete
-                            ? "Completed"
-                            : step.description}
+                          ? "Completed"
+                          : step.description}
                       </span>
                     </div>
 
                     <div className="analysis-step-status">
                       {isComplete && "✓"}
 
-                      {isCurrent && <span className="mini-spinner"></span>}
+                      {isCurrent && (
+                        <span className="mini-spinner"></span>
+                      )}
                     </div>
                   </div>
                 );
@@ -858,30 +1350,39 @@ function App() {
                 style={{
                   width: `${Math.max(
                     5,
-                    ((currentStep + 1) / analysisSteps.length) * 100
+                    ((currentStep + 1) /
+                      analysisSteps.length) *
+                      100
                   )}%`,
                 }}
               ></div>
             </div>
 
             <p className="analysis-note">
-              Processing locally for prototype demonstration.
+              Processing locally for prototype
+              demonstration.
             </p>
           </section>
         )}
 
-        {analysisComplete && (
+        {analysisComplete && analysisResult && (
           <section className="analysis-complete">
             <div className="complete-icon">✓</div>
 
             <div>
-              <span className="section-label">ANALYSIS COMPLETE</span>
+              <span className="section-label">
+                ANALYSIS COMPLETE
+              </span>
 
-              <h2>Evidence analysis finished successfully</h2>
+              <h2>
+                Evidence analysis finished successfully
+              </h2>
 
               <p>
-                The document has passed through OCR, reference comparison,
-                tamper analysis, document rules and the risk assessment stage.
+                The document has passed through OCR,
+                reference comparison, tamper analysis,
+                document rules and the risk assessment
+                stage.
               </p>
             </div>
 
@@ -899,7 +1400,9 @@ function App() {
         {!isAnalyzing && !analysisComplete && (
           <section className="analyze-section">
             <button
-              className={`analyze-btn ${submittedFile ? "enabled" : ""}`}
+              className={`analyze-btn ${
+                submittedFile ? "enabled" : ""
+              }`}
               disabled={!submittedFile}
               onClick={handleAnalyze}
               type="button"
@@ -909,15 +1412,19 @@ function App() {
             </button>
 
             <p>
-              The authorized reference will be automatically used for
-              comparison.
+              The authorized reference will be
+              automatically used for comparison.
             </p>
           </section>
         )}
 
         {analysisComplete && (
           <div className="reset-container">
-            <button className="reset-btn" onClick={handleReset} type="button">
+            <button
+              className="reset-btn"
+              onClick={handleReset}
+              type="button"
+            >
               Analyze Another Document
             </button>
           </div>
@@ -930,18 +1437,24 @@ function App() {
             <h3>Decision-Support System</h3>
 
             <p>
-              DocShield is an AI-assisted screening tool. A high-risk result
-              indicates document indicators requiring further verification. It
-              does not establish fraud or provide legally binding
-              authentication. Final verification remains with the authorized
-              human officer.
+              DocShield is an AI-assisted screening tool.
+              A high-risk result indicates document
+              indicators requiring further verification. An
+              invalid-document result means the input could
+              not be reliably screened. It does not
+              establish fraud or provide legally binding
+              authentication. Final verification remains with
+              the authorized human officer.
             </p>
           </div>
         </section>
       </main>
 
       <footer>
-        <p>DocShield-SIH2026 • Smart India Hackathon Prototype</p>
+        <p>
+          DocShield-SIH2026 • Smart India Hackathon
+          Prototype
+        </p>
       </footer>
     </div>
   );
