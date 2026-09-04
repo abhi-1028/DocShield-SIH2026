@@ -9,7 +9,8 @@ router = APIRouter(
     tags=["Document Upload"]
 )
 
-UPLOAD_DIR = Path("uploads")
+BACKEND_DIR = Path(__file__).resolve().parents[2]
+UPLOAD_DIR = BACKEND_DIR / "uploads"
 UPLOAD_DIR.mkdir(exist_ok=True)
 
 ALLOWED_EXTENSIONS = {".jpg", ".jpeg", ".png", ".pdf"}

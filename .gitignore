@@ -219,6 +219,8 @@ __marimo__/
 
 # DocumentShield local runtime files
 backend/uploads/
+backend/tamper_outputs/
+uploads/
 desktop.ini
 
 # Accidental root-level dependency file

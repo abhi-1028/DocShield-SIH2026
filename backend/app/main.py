@@ -1,9 +1,9 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
+from pathlib import Path
 from app.api.upload import router as upload_router
 from app.api.screening import router as screening_router
-
+from fastapi.staticfiles import StaticFiles
 
 app = FastAPI(
     title="DocumentShield API",
@@ -21,6 +21,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Serve generated tamper-highlighted images
+BACKEND_DIR = Path(__file__).resolve().parents[1]
+TAMPER_OUTPUT_DIR = BACKEND_DIR / "tamper_outputs"
+
+TAMPER_OUTPUT_DIR.mkdir(exist_ok=True)
+
+app.mount(
+    "/tamper_outputs",
+    StaticFiles(directory=str(TAMPER_OUTPUT_DIR)),
+    name="tamper_outputs"
+)
 
 # Register API routes
 app.include_router(upload_router)
