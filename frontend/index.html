@@ -1,0 +1,2731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>DocShield — AI Document Protection</title>
+
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --sky: #38bdf8;
+            --sky-light: #e0f6ff;
+            --sky-pale: #f0faff;
+            --blue: #0284c7;
+            --blue-dark: #0369a1;
+
+            --text: #102a43;
+            --text-light: #486581;
+            --muted: #829ab1;
+
+            --white: #ffffff;
+            --background: #f7fcff;
+
+            --green: #16a34a;
+            --green-light: #ecfdf3;
+
+            --red: #dc2626;
+            --red-light: #fff1f2;
+
+            --border: #d9edf7;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            font-family:
+                Inter,
+                ui-sans-serif,
+                system-ui,
+                -apple-system,
+                BlinkMacSystemFont,
+                "Segoe UI",
+                sans-serif;
+
+            color: var(--text);
+
+            min-height: 100vh;
+
+            background:
+                radial-gradient(
+                    circle at 5% 0%,
+                    rgba(56, 189, 248, 0.14),
+                    transparent 30%
+                ),
+                radial-gradient(
+                    circle at 95% 15%,
+                    rgba(125, 211, 252, 0.12),
+                    transparent 30%
+                ),
+                linear-gradient(
+                    180deg,
+                    #52a8c5 0%,
+                    #f7fcff 45%,
+                    #f2faff 100%
+                );
+
+            overflow-x: hidden;
+        }
+
+        body::before {
+            content: "";
+
+            position: fixed;
+
+            inset: 0;
+
+            pointer-events: none;
+
+            background-image:
+                linear-gradient(
+                    rgba(14, 165, 233, 0.025) 1px,
+                    transparent 1px
+                ),
+                linear-gradient(
+                    90deg,
+                    rgba(14, 165, 233, 0.025) 1px,
+                    transparent 1px
+                );
+
+            background-size: 45px 45px;
+
+            mask-image:
+                linear-gradient(
+                    to bottom,
+                    black,
+                    transparent
+                );
+        }
+
+        .container {
+            width: min(1180px, calc(100% - 40px));
+
+            margin: auto;
+        }
+
+
+        /* =====================================================
+           HEADER
+        ===================================================== */
+
+        header {
+            height: 76px;
+
+            display: flex;
+
+            align-items: center;
+
+            background: linear-gradient(
+                90deg,
+                #488ac4,
+                #0d6284
+            );
+
+            backdrop-filter: blur(18px);
+
+            border-bottom:
+                1px solid rgba(14, 165, 233, 0.10);
+
+            position: sticky;
+
+            top: 0;
+
+            z-index: 100;
+        }
+
+        .nav {
+            width: 100%;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+        }
+
+        .brand {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+        }
+
+        .brand-icon {
+            width: 44px;
+
+            height: 44px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 13px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #38bdf8,
+                    #0284c7
+                );
+
+            color: white;
+
+            font-size: 22px;
+
+            box-shadow:
+                0 8px 24px
+                rgba(14, 165, 233, 0.22);
+        }
+
+        .brand-name {
+            font-size: 21px;
+
+            font-weight: 850;
+
+            letter-spacing: -0.3px;
+
+            color: #102a43;
+        }
+
+        .brand-name span {
+            color: #154779;
+        }
+
+        .nav-badge {
+            display: flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 8px 14px;
+
+            border-radius: 999px;
+
+            background: #f0faff;
+
+            border:
+                1px solid
+                #cceefa;
+
+            color: #0369a1;
+
+            font-size: 12px;
+
+            font-weight: 700;
+        }
+
+        .status-dot {
+            width: 8px;
+
+            height: 8px;
+
+            border-radius: 50%;
+
+            background: #22c55e;
+
+            box-shadow:
+                0 0 0 4px
+                rgba(34, 197, 94, 0.10);
+        }
+
+
+        /* =====================================================
+           HERO
+        ===================================================== */
+
+        .hero {
+            text-align: center;
+
+            padding:
+                72px 0
+                44px;
+        }
+
+        .eyebrow {
+            display: inline-flex;
+
+            align-items: center;
+
+            gap: 8px;
+
+            padding: 8px 15px;
+
+            border-radius: 999px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #effaff,
+                    #e0f6ff
+                );
+
+            border:
+                1px solid
+                #c7ebfa;
+
+            color: #0369a1;
+
+            font-size: 11px;
+
+            font-weight: 800;
+
+            letter-spacing: 1px;
+
+            margin-bottom: 21px;
+        }
+
+        .hero h1 {
+            max-width: 850px;
+
+            margin: auto;
+
+            font-size:
+                clamp(40px, 6vw, 68px);
+
+            line-height: 1.05;
+
+            letter-spacing: -3px;
+
+            color: #102a43;
+        }
+
+        .hero h1 span {
+            background:
+                linear-gradient(
+                    90deg,
+                    #0ea5e9,
+                    #38bdf8,
+                    #0284c7
+                );
+
+            -webkit-background-clip: text;
+
+            background-clip: text;
+
+            color: transparent;
+        }
+
+        .hero p {
+            max-width: 700px;
+
+            margin:
+                22px auto 0;
+
+            color: var(--text-light);
+
+            line-height: 1.75;
+
+            font-size: 16px;
+        }
+
+
+        /* =====================================================
+           MAIN APPLICATION CARD
+        ===================================================== */
+
+        .main-card {
+            max-width: 920px;
+
+            margin:
+                8px auto 70px;
+
+            padding: 30px;
+
+            background:
+                rgba(255, 255, 255, 0.94);
+
+            border:
+                1px solid
+                #d9edf7;
+
+            border-radius: 28px;
+
+            box-shadow:
+                0 25px 70px
+                rgba(14, 116, 144, 0.10),
+                0 5px 20px
+                rgba(14, 165, 233, 0.04);
+
+            position: relative;
+        }
+
+        .main-card::before {
+            content: "";
+
+            position: absolute;
+
+            top: 0;
+
+            left: 8%;
+
+            right: 8%;
+
+            height: 3px;
+
+            border-radius: 0 0 10px 10px;
+
+            background:
+                linear-gradient(
+                    90deg,
+                    transparent,
+                    #38bdf8,
+                    transparent
+                );
+        }
+
+
+        /* =====================================================
+           UPLOAD AREA
+        ===================================================== */
+
+        .upload-zone {
+            min-height: 315px;
+
+            display: flex;
+
+            flex-direction: column;
+
+            align-items: center;
+
+            justify-content: center;
+
+            text-align: center;
+
+            padding: 35px;
+
+            cursor: pointer;
+
+            border:
+                2px dashed
+                #b8e5f6;
+
+            border-radius: 22px;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #fbfeff,
+                    #f3fbff
+                );
+
+            transition:
+                0.25s ease;
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color:
+                #38bdf8;
+
+            background:
+                linear-gradient(
+                    180deg,
+                    #f5fcff,
+                    #eaf8ff
+                );
+
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 15px 35px
+                rgba(14, 165, 233, 0.09);
+        }
+
+        .upload-icon {
+            width: 82px;
+
+            height: 82px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 23px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #e0f6ff,
+                    #f0faff
+                );
+
+            border:
+                1px solid
+                #c6ebf9;
+
+            font-size: 38px;
+
+            margin-bottom: 20px;
+
+            box-shadow:
+                0 10px 25px
+                rgba(14, 165, 233, 0.08);
+        }
+
+        .upload-zone h2 {
+            font-size: 22px;
+
+            color: #102a43;
+
+            margin-bottom: 8px;
+        }
+
+        .upload-zone p {
+            color: #627d98;
+
+            font-size: 14px;
+        }
+
+        .browse {
+            color:
+                #0284c7;
+
+            font-weight: 800;
+        }
+
+        .formats {
+            margin-top: 17px;
+
+            color:
+                #9fb3c8;
+
+            font-size: 11px;
+
+            letter-spacing: 0.4px;
+        }
+
+        #fileInput {
+            display: none;
+        }
+
+
+        /* =====================================================
+           FILE CARD
+        ===================================================== */
+
+        .file-card {
+            display: none;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            gap: 15px;
+
+            margin-top: 20px;
+
+            padding: 15px 17px;
+
+            border-radius: 16px;
+
+            background:
+                #f5fbfe;
+
+            border:
+                1px solid
+                #d7edf6;
+        }
+
+        .file-info {
+            display: flex;
+
+            align-items: center;
+
+            gap: 13px;
+
+            min-width: 0;
+        }
+
+        .file-icon {
+            width: 43px;
+
+            height: 43px;
+
+            flex: 0 0 auto;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 11px;
+
+            background:
+                #e1f5fd;
+
+            font-size: 20px;
+        }
+
+        .file-details {
+            min-width: 0;
+        }
+
+        .file-name {
+            font-size: 14px;
+
+            font-weight: 750;
+
+            color:
+                #243b53;
+
+            overflow: hidden;
+
+            text-overflow: ellipsis;
+
+            white-space: nowrap;
+        }
+
+        .file-size {
+            font-size: 12px;
+
+            color:
+                #829ab1;
+
+            margin-top: 3px;
+        }
+
+        .remove-btn {
+            border: 0;
+
+            background: transparent;
+
+            color:
+                #9fb3c8;
+
+            font-size: 22px;
+
+            cursor: pointer;
+
+            padding: 5px 8px;
+
+            transition: 0.2s;
+        }
+
+        .remove-btn:hover {
+            color:
+                #dc2626;
+        }
+
+
+        /* =====================================================
+           PROTECT BUTTON
+        ===================================================== */
+
+        .action-row {
+            display: flex;
+
+            justify-content: center;
+
+            margin-top: 22px;
+        }
+
+        .protect-btn {
+            width: 100%;
+
+            max-width: 390px;
+
+            height: 58px;
+
+            border: none;
+
+            border-radius: 16px;
+
+            cursor: pointer;
+
+            color:
+                white;
+
+            font-size: 15px;
+
+            font-weight: 800;
+
+            letter-spacing: 0.2px;
+
+            background:
+                linear-gradient(
+                    135deg,
+                    #07a7f1,
+                    #2171e8
+                );
+
+            box-shadow:
+                0 13px 30px
+                rgba(2, 132, 199, 0.22);
+
+            transition:
+                0.25s ease;
+        }
+
+        .protect-btn:hover:not(:disabled) {
+            transform:
+                translateY(-2px);
+
+            box-shadow:
+                0 18px 38px
+                rgba(2, 132, 199, 0.28);
+        }
+
+        .protect-btn:active:not(:disabled) {
+            transform:
+                translateY(0);
+        }
+
+        .protect-btn:disabled {
+            opacity: 0.45;
+
+            cursor: not-allowed;
+
+            box-shadow: none;
+        }
+
+
+        /* =====================================================
+           STATUS / PROCESSING
+        ===================================================== */
+
+        .status {
+            display: none;
+
+            margin-top: 25px;
+
+            padding: 20px;
+
+            border-radius: 18px;
+
+            background:
+                #f4fbfe;
+
+            border:
+                1px solid
+                #d8eef7;
+        }
+
+        .status.active {
+            display: block;
+        }
+
+        .status-header {
+            display: flex;
+
+            align-items: center;
+
+            gap: 12px;
+
+            margin-bottom: 18px;
+        }
+
+        .spinner {
+            width: 24px;
+
+            height: 24px;
+
+            border:
+                3px solid
+                #d8eff8;
+
+            border-top-color:
+                #0ea5e9;
+
+            border-radius: 50%;
+
+            animation:
+                spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform:
+                    rotate(360deg);
+            }
+        }
+
+        .status-title {
+            font-size: 15px;
+
+            font-weight: 800;
+
+            color:
+                #243b53;
+        }
+
+        .steps {
+            display: grid;
+
+            gap: 10px;
+        }
+
+        .step {
+            display: flex;
+
+            align-items: center;
+
+            gap: 10px;
+
+            font-size: 13px;
+
+            color:
+                #9fb3c8;
+
+            transition:
+                0.25s;
+        }
+
+        .step.active {
+            color:
+                #0369a1;
+
+            font-weight: 700;
+        }
+
+        .step.done {
+            color:
+                #15803d;
+        }
+
+        .step-icon {
+            width: 20px;
+
+            height: 20px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 50%;
+
+            font-size: 10px;
+
+            background:
+                #edf6fa;
+
+            color:
+                #829ab1;
+        }
+
+        .step.active .step-icon {
+            background:
+                #dff5ff;
+
+            color:
+                #0284c7;
+        }
+
+        .step.done .step-icon {
+            background:
+                #dcfce7;
+
+            color:
+                #16a34a;
+        }
+
+
+        /* =====================================================
+           RESULT
+        ===================================================== */
+
+        .result {
+            display: none;
+
+            margin-top: 30px;
+        }
+
+        .result.show {
+            display: block;
+
+            animation:
+                fadeUp 0.45s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+
+                transform:
+                    translateY(12px);
+            }
+
+            to {
+                opacity: 1;
+
+                transform:
+                    translateY(0);
+            }
+        }
+
+        .success-banner {
+            display: flex;
+
+            align-items: center;
+
+            gap: 13px;
+
+            padding: 18px 20px;
+
+            margin-bottom: 22px;
+
+            border-radius: 17px;
+
+            background:
+                #effcf4;
+
+            border:
+                1px solid
+                #c8f0d7;
+        }
+
+        .success-icon {
+            width: 39px;
+
+            height: 39px;
+
+            flex: 0 0 auto;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 50%;
+
+            background:
+                #dcfce7;
+
+            color:
+                #16a34a;
+
+            font-size: 20px;
+
+            font-weight: 900;
+        }
+
+        .success-banner strong {
+            display: block;
+
+            color:
+                #166534;
+
+            font-size: 15px;
+        }
+
+        .success-banner span {
+            display: block;
+
+            color:
+                #4d7c5b;
+
+            font-size: 12px;
+
+            margin-top: 3px;
+        }
+
+
+        /* =====================================================
+           DOCUMENT COMPARISON
+        ===================================================== */
+
+        .comparison {
+            display: grid;
+
+            grid-template-columns:
+                1fr 1fr;
+
+            gap: 18px;
+        }
+
+        .preview-card {
+            overflow: hidden;
+
+            background:
+                white;
+
+            border:
+                1px solid
+                #d9edf7;
+
+            border-radius: 18px;
+
+            box-shadow:
+                0 7px 22px
+                rgba(14, 116, 144, 0.06);
+        }
+
+        .preview-header {
+            display: flex;
+
+            align-items: center;
+
+            justify-content: space-between;
+
+            padding:
+                13px 15px;
+
+            border-bottom:
+                1px solid
+                #e8f3f8;
+        }
+
+        .preview-title {
+            font-size: 13px;
+
+            font-weight: 800;
+
+            color:
+                #243b53;
+        }
+
+        .preview-label {
+            padding:
+                5px 8px;
+
+            border-radius: 6px;
+
+            background:
+                #f1f8fb;
+
+            color:
+                #829ab1;
+
+            font-size: 9px;
+
+            text-transform:
+                uppercase;
+
+            letter-spacing:
+                0.8px;
+
+            font-weight: 800;
+        }
+
+        .image-container {
+            height: 390px;
+
+            padding: 14px;
+
+            display: flex;
+
+            align-items: center;
+
+            justify-content: center;
+
+            background:
+                #f8fcfe;
+        }
+
+        .image-container img {
+            max-width: 100%;
+
+            max-height: 100%;
+
+            object-fit: contain;
+
+            border-radius: 8px;
+
+            box-shadow:
+                0 8px 25px
+                rgba(15, 23, 42, 0.12);
+        }
+
+        .protected-image {
+            border:
+                2px solid
+                rgba(22, 163, 74, 0.20);
+        }
+
+
+        /* =====================================================
+           STATISTICS
+        ===================================================== */
+
+        .stats {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 12px;
+
+            margin-top: 18px;
+        }
+
+        .stat {
+            padding: 17px;
+
+            border-radius: 15px;
+
+            background:
+                #f7fcff;
+
+            border:
+                1px solid
+                #dceff7;
+        }
+
+        .stat-number {
+            font-size: 25px;
+
+            font-weight: 850;
+
+            color:
+                #0284c7;
+        }
+
+        .stat-label {
+            color:
+                #829ab1;
+
+            font-size: 11px;
+
+            margin-top: 3px;
+        }
+
+
+        /* =====================================================
+           DOWNLOAD
+        ===================================================== */
+
+        .download-btn {
+            width: 100%;
+
+            height: 54px;
+
+            border:
+                1px solid
+                #bce8ce;
+
+            border-radius: 15px;
+
+            background:
+                #effcf4;
+
+            color:
+                #15803d;
+
+            font-size: 14px;
+
+            font-weight: 800;
+
+            cursor: pointer;
+
+            margin-top: 18px;
+
+            transition:
+                0.2s ease;
+        }
+
+        .download-btn:hover {
+            background:
+                #dcfce7;
+
+            transform:
+                translateY(-1px);
+        }
+
+
+        /* =====================================================
+           FEATURES
+        ===================================================== */
+
+        .features {
+            display: grid;
+
+            grid-template-columns:
+                repeat(3, 1fr);
+
+            gap: 16px;
+
+            padding-bottom: 70px;
+        }
+
+        .feature {
+            padding: 25px;
+
+            border-radius: 19px;
+
+            background:
+                rgba(255,255,255,0.88);
+
+            border:
+                1px solid
+                #d9edf7;
+
+            box-shadow:
+                0 8px 25px
+                rgba(14, 116, 144, 0.04);
+
+            transition:
+                0.25s ease;
+        }
+
+        .feature:hover {
+            transform:
+                translateY(-3px);
+
+            box-shadow:
+                0 15px 35px
+                rgba(14, 116, 144, 0.08);
+        }
+
+        .feature-icon {
+            width: 47px;
+
+            height: 47px;
+
+            display: grid;
+
+            place-items: center;
+
+            border-radius: 13px;
+
+            background:
+                #e5f7ff;
+
+            margin-bottom: 15px;
+
+            font-size: 23px;
+        }
+
+        .feature h3 {
+            font-size: 15px;
+
+            margin-bottom: 8px;
+
+            color:
+                #243b53;
+        }
+
+        .feature p {
+            color:
+                #627d98;
+
+            font-size: 12px;
+
+            line-height: 1.65;
+        }
+
+
+        /* =====================================================
+           ERROR
+        ===================================================== */
+
+        .error-box {
+            display: none;
+
+            margin-top: 18px;
+
+            padding: 14px 16px;
+
+            border-radius: 13px;
+
+            color:
+                #991b1b;
+
+            background:
+                #fff1f2;
+
+            border:
+                1px solid
+                #fecdd3;
+
+            font-size: 13px;
+
+            line-height: 1.5;
+        }
+
+        .error-box.show {
+            display: block;
+        }
+
+
+        /* =====================================================
+           FOOTER
+        ===================================================== */
+
+        footer {
+            border-top:
+                1px solid
+                #dceff7;
+
+            padding:
+                25px 0 35px;
+
+            color:
+                #829ab1;
+
+            background:
+                rgba(255,255,255,0.55);
+
+            text-align:
+                center;
+
+            font-size: 12px;
+
+            line-height: 1.8;
+        }
+
+
+        /* =====================================================
+           RESPONSIVE
+        ===================================================== */
+
+        @media (max-width: 800px) {
+
+            .comparison {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .features {
+                grid-template-columns:
+                    1fr;
+            }
+
+            .stats {
+                grid-template-columns:
+                    1fr 1fr;
+            }
+
+            .image-container {
+                height: 340px;
+            }
+        }
+
+        @media (max-width: 550px) {
+
+            .container {
+                width:
+                    min(
+                        100% - 24px,
+                        1180px
+                    );
+            }
+
+            header {
+                height: 68px;
+            }
+
+            .nav-badge {
+                display: none;
+            }
+
+            .hero {
+                padding:
+                    50px 0 30px;
+            }
+
+            .hero h1 {
+                font-size: 42px;
+
+                letter-spacing:
+                    -1.8px;
+            }
+
+            .main-card {
+                padding: 15px;
+
+                border-radius: 20px;
+            }
+
+            .upload-zone {
+                min-height: 270px;
+
+                padding: 20px;
+            }
+
+            .stats {
+                grid-template-columns:
+                    1fr;
+            }
+        }
+
+    </style>
+</head>
+
+
+<body>
+
+
+<!-- =========================================================
+     HEADER
+========================================================= -->
+
+<header>
+
+    <div class="container nav">
+
+        <div class="brand">
+
+            <div class="brand-icon">
+                🛡️
+            </div>
+
+            <div class="brand-name">
+                Doc<span>Shield</span>
+            </div>
+
+        </div>
+
+
+        <div class="nav-badge">
+
+            <span class="status-dot"></span>
+
+            AI Protection Active
+
+        </div>
+
+    </div>
+
+</header>
+
+
+
+<!-- =========================================================
+     MAIN
+========================================================= -->
+
+<main>
+
+
+    <!-- HERO -->
+
+    <section class="hero container">
+
+        <div class="eyebrow">
+
+            🛡️ SIH2026 • AI DOCUMENT SECURITY
+
+        </div>
+
+
+        <h1>
+
+            Protect sensitive documents
+
+            <span>
+                with AI.
+            </span>
+
+        </h1>
+
+
+        <p>
+
+            DocShield automatically detects sensitive information
+            in your documents and securely redacts it — helping
+            protect your privacy before documents are shared.
+
+        </p>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         APPLICATION
+    ====================================================== -->
+
+    <section class="container">
+
+        <div class="main-card">
+
+
+            <!-- UPLOAD -->
+
+            <div
+                class="upload-zone"
+                id="uploadZone"
+            >
+
+                <div class="upload-icon">
+                    📄
+                </div>
+
+
+                <h2>
+                    Upload your document
+                </h2>
+
+
+                <p>
+
+                    Drag & drop your document here or
+
+                    <span class="browse">
+                        browse files
+                    </span>
+
+                </p>
+
+
+                <div class="formats">
+
+                    JPG • JPEG • PNG
+
+                </div>
+
+
+                <input
+                    type="file"
+                    id="fileInput"
+                    accept=".jpg,.jpeg,.png,image/jpeg,image/png"
+                >
+
+            </div>
+
+
+
+            <!-- SELECTED FILE -->
+
+            <div
+                class="file-card"
+                id="fileCard"
+            >
+
+                <div class="file-info">
+
+                    <div class="file-icon">
+                        📑
+                    </div>
+
+
+                    <div class="file-details">
+
+                        <div
+                            class="file-name"
+                            id="fileName"
+                        >
+                            —
+                        </div>
+
+
+                        <div
+                            class="file-size"
+                            id="fileSize"
+                        >
+                            —
+                        </div>
+
+                    </div>
+
+                </div>
+
+
+                <button
+                    class="remove-btn"
+                    id="removeBtn"
+                    title="Remove file"
+                >
+                    ×
+                </button>
+
+            </div>
+
+
+
+            <!-- ACTION -->
+
+            <div class="action-row">
+
+                <button
+                    class="protect-btn"
+                    id="protectBtn"
+                    disabled
+                >
+
+                    🛡️ Protect Document
+
+                </button>
+
+            </div>
+
+
+
+            <!-- ERROR -->
+
+            <div
+                class="error-box"
+                id="errorBox"
+            ></div>
+
+
+
+            <!-- PROCESSING -->
+
+            <div
+                class="status"
+                id="statusBox"
+            >
+
+                <div class="status-header">
+
+                    <div class="spinner"></div>
+
+                    <div class="status-title">
+
+                        Analyzing your document...
+
+                    </div>
+
+                </div>
+
+
+                <div class="steps">
+
+
+                    <div
+                        class="step active"
+                        id="step1"
+                    >
+
+                        <span class="step-icon">
+                            ✓
+                        </span>
+
+                        Document preprocessing
+
+                    </div>
+
+
+                    <div
+                        class="step"
+                        id="step2"
+                    >
+
+                        <span class="step-icon">
+                            2
+                        </span>
+
+                        Perspective correction
+
+                    </div>
+
+
+                    <div
+                        class="step"
+                        id="step3"
+                    >
+
+                        <span class="step-icon">
+                            3
+                        </span>
+
+                        OCR text analysis
+
+                    </div>
+
+
+                    <div
+                        class="step"
+                        id="step4"
+                    >
+
+                        <span class="step-icon">
+                            4
+                        </span>
+
+                        Sensitive data detection
+
+                    </div>
+
+
+                    <div
+                        class="step"
+                        id="step5"
+                    >
+
+                        <span class="step-icon">
+                            5
+                        </span>
+
+                        Applying document protection
+
+                    </div>
+
+
+                </div>
+
+            </div>
+
+
+
+            <!-- =================================================
+                 RESULT
+            ================================================== -->
+
+            <div
+                class="result"
+                id="resultBox"
+            >
+
+
+                <!-- SUCCESS -->
+
+                <div class="success-banner">
+
+                    <div class="success-icon">
+                        ✓
+                    </div>
+
+
+                    <div>
+
+                        <strong>
+                            Protection completed successfully!
+                        </strong>
+
+                        <span>
+                            Your sensitive information has been
+                            detected and protected.
+                        </span>
+
+                    </div>
+
+                </div>
+
+
+
+                <!-- COMPARISON -->
+
+                <div class="comparison">
+
+
+                    <!-- ORIGINAL -->
+
+                    <div class="preview-card">
+
+                        <div class="preview-header">
+
+                            <div class="preview-title">
+                                Original Document
+                            </div>
+
+                            <div class="preview-label">
+                                Original
+                            </div>
+
+                        </div>
+
+
+                        <div class="image-container">
+
+                            <img
+                                id="originalPreview"
+                                alt="Original document"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+
+                    <!-- PROTECTED -->
+
+                    <div class="preview-card">
+
+                        <div class="preview-header">
+
+                            <div class="preview-title">
+                                Protected Document
+                            </div>
+
+                            <div class="preview-label">
+                                Secured
+                            </div>
+
+                        </div>
+
+
+                        <div class="image-container">
+
+                            <img
+                                id="protectedPreview"
+                                class="protected-image"
+                                alt="Protected document"
+                            >
+
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- STATISTICS -->
+
+                <div class="stats">
+
+
+                    <div class="stat">
+
+                        <div
+                            class="stat-number"
+                            id="totalDetected"
+                        >
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Sensitive items protected
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        <div
+                            class="stat-number"
+                            id="nameCount"
+                        >
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Names detected
+                        </div>
+
+                    </div>
+
+
+                    <div class="stat">
+
+                        <div
+                            class="stat-number"
+                            id="aadhaarCount"
+                        >
+                            0
+                        </div>
+
+                        <div class="stat-label">
+                            Aadhaar numbers detected
+                        </div>
+
+                    </div>
+
+
+                </div>
+
+
+
+                <!-- DOWNLOAD -->
+
+                <button
+                    class="download-btn"
+                    id="downloadBtn"
+                >
+
+                    ⬇️ Download Protected Document
+
+                </button>
+
+
+            </div>
+
+        </div>
+
+    </section>
+
+
+
+    <!-- =====================================================
+         FEATURES
+    ====================================================== -->
+
+    <section class="container">
+
+        <div class="features">
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    🔍
+                </div>
+
+                <h3>
+                    AI-Powered Detection
+                </h3>
+
+                <p>
+                    OCR and intelligent pattern detection identify
+                    sensitive information such as names and identity
+                    numbers.
+                </p>
+
+            </div>
+
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    🔒
+                </div>
+
+                <h3>
+                    Privacy First
+                </h3>
+
+                <p>
+                    Sensitive regions are visually redacted before
+                    the protected document is downloaded.
+                </p>
+
+            </div>
+
+
+
+            <div class="feature">
+
+                <div class="feature-icon">
+                    ⚡
+                </div>
+
+                <h3>
+                    Simple & Fast
+                </h3>
+
+                <p>
+                    Upload a document, let DocShield analyze it,
+                    and download a protected version in just a few
+                    steps.
+                </p>
+
+            </div>
+
+
+        </div>
+
+    </section>
+
+
+</main>
+
+
+
+<!-- =========================================================
+     FOOTER
+========================================================= -->
+
+<footer>
+
+    <div class="container">
+
+        🛡️ DocShield — AI-Powered Sensitive Document Protection
+
+        <br>
+
+        Built for Smart India Hackathon 2026
+
+    </div>
+
+</footer>
+
+
+
+<script>
+
+
+/* ============================================================
+   DOM ELEMENTS
+============================================================ */
+
+const uploadZone =
+    document.getElementById("uploadZone");
+
+const fileInput =
+    document.getElementById("fileInput");
+
+const fileCard =
+    document.getElementById("fileCard");
+
+const fileName =
+    document.getElementById("fileName");
+
+const fileSize =
+    document.getElementById("fileSize");
+
+const removeBtn =
+    document.getElementById("removeBtn");
+
+const protectBtn =
+    document.getElementById("protectBtn");
+
+const statusBox =
+    document.getElementById("statusBox");
+
+const errorBox =
+    document.getElementById("errorBox");
+
+const resultBox =
+    document.getElementById("resultBox");
+
+const originalPreview =
+    document.getElementById("originalPreview");
+
+const protectedPreview =
+    document.getElementById("protectedPreview");
+
+const downloadBtn =
+    document.getElementById("downloadBtn");
+
+const totalDetected =
+    document.getElementById("totalDetected");
+
+const nameCount =
+    document.getElementById("nameCount");
+
+const aadhaarCount =
+    document.getElementById("aadhaarCount");
+
+
+const pipelineSteps = [
+
+    document.getElementById("step1"),
+
+    document.getElementById("step2"),
+
+    document.getElementById("step3"),
+
+    document.getElementById("step4"),
+
+    document.getElementById("step5")
+
+];
+
+
+let selectedFile = null;
+
+
+
+/* ============================================================
+   FILE UPLOAD
+============================================================ */
+
+uploadZone.addEventListener(
+    "click",
+    () => {
+
+        fileInput.click();
+
+    }
+);
+
+
+fileInput.addEventListener(
+    "change",
+    () => {
+
+        if (
+            fileInput.files.length > 0
+        ) {
+
+            handleFile(
+                fileInput.files[0]
+            );
+
+        }
+
+    }
+);
+
+
+
+function handleFile(file) {
+
+    hideError();
+
+
+    const allowedTypes = [
+
+        "image/jpeg",
+
+        "image/png"
+
+    ];
+
+
+    if (
+        !allowedTypes.includes(
+            file.type
+        )
+    ) {
+
+        showError(
+            "Please upload a JPG, JPEG, or PNG image."
+        );
+
+        return;
+
+    }
+
+
+    const maxSize =
+        15 * 1024 * 1024;
+
+
+    if (
+        file.size > maxSize
+    ) {
+
+        showError(
+            "File is too large. Maximum allowed size is 15 MB."
+        );
+
+        return;
+
+    }
+
+
+    selectedFile = file;
+
+
+    fileName.textContent =
+        file.name;
+
+
+    fileSize.textContent =
+        formatFileSize(
+            file.size
+        );
+
+
+    fileCard.style.display =
+        "flex";
+
+
+    protectBtn.disabled =
+        false;
+
+
+    const objectUrl =
+        URL.createObjectURL(
+            file
+        );
+
+
+    originalPreview.src =
+        objectUrl;
+
+
+    resultBox.classList.remove(
+        "show"
+    );
+
+}
+
+
+
+function formatFileSize(bytes) {
+
+    if (
+        bytes < 1024
+    ) {
+
+        return bytes + " B";
+
+    }
+
+
+    if (
+        bytes < 1024 * 1024
+    ) {
+
+        return (
+            bytes / 1024
+        ).toFixed(1) + " KB";
+
+    }
+
+
+    return (
+        bytes /
+        (1024 * 1024)
+    ).toFixed(2) + " MB";
+
+}
+
+
+
+/* ============================================================
+   REMOVE FILE
+============================================================ */
+
+removeBtn.addEventListener(
+    "click",
+    (event) => {
+
+        event.stopPropagation();
+
+        resetApplication();
+
+    }
+);
+
+
+function resetApplication() {
+
+    selectedFile = null;
+
+    fileInput.value = "";
+
+    fileCard.style.display =
+        "none";
+
+    protectBtn.disabled =
+        true;
+
+    statusBox.classList.remove(
+        "active"
+    );
+
+    resultBox.classList.remove(
+        "show"
+    );
+
+    hideError();
+
+    originalPreview.removeAttribute(
+        "src"
+    );
+
+    protectedPreview.removeAttribute(
+        "src"
+    );
+
+    resetSteps();
+
+}
+
+
+
+/* ============================================================
+   DRAG AND DROP
+============================================================ */
+
+uploadZone.addEventListener(
+    "dragover",
+    (event) => {
+
+        event.preventDefault();
+
+        uploadZone.classList.add(
+            "dragover"
+        );
+
+    }
+);
+
+
+uploadZone.addEventListener(
+    "dragleave",
+    () => {
+
+        uploadZone.classList.remove(
+            "dragover"
+        );
+
+    }
+);
+
+
+uploadZone.addEventListener(
+    "drop",
+    (event) => {
+
+        event.preventDefault();
+
+        uploadZone.classList.remove(
+            "dragover"
+        );
+
+
+        if (
+            event.dataTransfer.files.length > 0
+        ) {
+
+            handleFile(
+                event.dataTransfer.files[0]
+            );
+
+        }
+
+    }
+);
+
+
+
+/* ============================================================
+   PROTECT DOCUMENT
+============================================================ */
+
+protectBtn.addEventListener(
+    "click",
+    async () => {
+
+
+        if (!selectedFile) {
+
+            showError(
+                "Please select a document first."
+            );
+
+            return;
+
+        }
+
+
+        hideError();
+
+
+        resultBox.classList.remove(
+            "show"
+        );
+
+
+        statusBox.classList.add(
+            "active"
+        );
+
+
+        protectBtn.disabled =
+            true;
+
+
+        resetSteps();
+
+
+        try {
+
+
+            const formData =
+                new FormData();
+
+
+            formData.append(
+                "file",
+                selectedFile
+            );
+
+
+            /*
+             * Existing DocShield backend.
+             */
+
+            const response =
+                await fetch(
+                    "/protect",
+                    {
+                        method: "POST",
+                        body: formData
+                    }
+                );
+
+
+            let data = {};
+
+
+            try {
+
+                data =
+                    await response.json();
+
+            }
+
+            catch (jsonError) {
+
+                throw new Error(
+                    "The server returned an invalid response."
+                );
+
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.error ||
+                    "Document protection failed."
+                );
+
+            }
+
+
+            /*
+             * Animate the pipeline.
+             */
+
+            await animateSteps();
+
+
+            if (
+                data.success === false ||
+                data.status === "error"
+            ) {
+
+                throw new Error(
+                    data.error ||
+                    "Protection failed."
+                );
+
+            }
+
+
+            /*
+             * Preview protected document.
+             *
+             * Date.now() prevents browser cache.
+             */
+
+            protectedPreview.src =
+                "/preview?x=" +
+                Date.now();
+
+
+            updateStatistics(
+                data
+            );
+
+
+            statusBox.classList.remove(
+                "active"
+            );
+
+
+            resultBox.classList.add(
+                "show"
+            );
+
+
+            setTimeout(
+                () => {
+
+                    resultBox.scrollIntoView(
+                        {
+                            behavior: "smooth",
+                            block: "start"
+                        }
+                    );
+
+                },
+                100
+            );
+
+
+        }
+
+        catch (error) {
+
+            console.error(
+                "DocShield error:",
+                error
+            );
+
+
+            statusBox.classList.remove(
+                "active"
+            );
+
+
+            showError(
+                error.message ||
+                "Something went wrong while protecting the document."
+            );
+
+
+            protectBtn.disabled =
+                false;
+
+        }
+
+    }
+);
+
+
+
+/* ============================================================
+   PIPELINE ANIMATION
+============================================================ */
+
+async function animateSteps() {
+
+    for (
+        let i = 0;
+        i < pipelineSteps.length;
+        i++
+    ) {
+
+
+        if (i > 0) {
+
+            pipelineSteps[i - 1]
+                .classList.remove(
+                    "active"
+                );
+
+            pipelineSteps[i - 1]
+                .classList.add(
+                    "done"
+                );
+
+        }
+
+
+        pipelineSteps[i]
+            .classList.add(
+                "active"
+            );
+
+
+        await delay(
+            450
+        );
+
+    }
+
+
+    const lastStep =
+        pipelineSteps[
+            pipelineSteps.length - 1
+        ];
+
+
+    lastStep.classList.remove(
+        "active"
+    );
+
+
+    lastStep.classList.add(
+        "done"
+    );
+
+}
+
+
+
+function delay(ms) {
+
+    return new Promise(
+        resolve =>
+            setTimeout(
+                resolve,
+                ms
+            )
+    );
+
+}
+
+
+
+function resetSteps() {
+
+    pipelineSteps.forEach(
+        (step, index) => {
+
+            step.classList.remove(
+                "active"
+            );
+
+            step.classList.remove(
+                "done"
+            );
+
+
+            if (
+                index === 0
+            ) {
+
+                step.classList.add(
+                    "active"
+                );
+
+            }
+
+        }
+    );
+
+}
+
+
+
+/* ============================================================
+   DETECTION STATISTICS
+============================================================ */
+
+function updateStatistics(data) {
+
+
+    let detections = [];
+
+
+    if (
+        Array.isArray(
+            data.detected_data
+        )
+    ) {
+
+        detections =
+            data.detected_data;
+
+    }
+
+    else if (
+        Array.isArray(
+            data.detections
+        )
+    ) {
+
+        detections =
+            data.detections;
+
+    }
+
+    else if (
+        Array.isArray(
+            data.results
+        )
+    ) {
+
+        detections =
+            data.results;
+
+    }
+
+
+    if (
+        detections.length === 0 &&
+        typeof data.detected_count ===
+        "number"
+    ) {
+
+        totalDetected.textContent =
+            data.detected_count;
+
+        nameCount.textContent =
+            "—";
+
+        aadhaarCount.textContent =
+            "—";
+
+        return;
+
+    }
+
+
+    totalDetected.textContent =
+        detections.length;
+
+
+    let names = 0;
+
+    let aadhaar = 0;
+
+
+    detections.forEach(
+        item => {
+
+
+            const type =
+                String(
+                    item.type ||
+                    item.label ||
+                    item.category ||
+                    ""
+                ).toLowerCase();
+
+
+            if (
+                type.includes("name")
+            ) {
+
+                names++;
+
+            }
+
+
+            if (
+                type.includes("aadhaar") ||
+                type.includes("aadhar")
+            ) {
+
+                aadhaar++;
+
+            }
+
+        }
+    );
+
+
+    nameCount.textContent =
+        names;
+
+
+    aadhaarCount.textContent =
+        aadhaar;
+
+}
+
+
+
+/* ============================================================
+   DOWNLOAD
+============================================================ */
+
+downloadBtn.addEventListener(
+    "click",
+    () => {
+
+        window.location.href =
+            "/download";
+
+    }
+);
+
+
+
+/* ============================================================
+   ERROR HANDLING
+============================================================ */
+
+function showError(message) {
+
+    errorBox.textContent =
+        "⚠️ " + message;
+
+    errorBox.classList.add(
+        "show"
+    );
+
+}
+
+
+
+function hideError() {
+
+    errorBox.textContent =
+        "";
+
+    errorBox.classList.remove(
+        "show"
+    );
+
+}
+
+</script>
+
+
+</body>
+</html>
+```

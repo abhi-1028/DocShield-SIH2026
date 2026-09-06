@@ -2,7 +2,15 @@ import subprocess
 import sys
 
 
-def run_step(filename, description):
+# ============================================================
+# DOCSHIELD - COMPLETE DOCUMENT PROTECTION PIPELINE
+# ============================================================
+
+
+def run_step(
+    filename,
+    description
+):
 
     print()
     print("=" * 60)
@@ -10,66 +18,125 @@ def run_step(filename, description):
     print("=" * 60)
     print()
 
-    # Use the exact Python interpreter running main.py
+
     result = subprocess.run(
-        [sys.executable, filename]
+        [
+            sys.executable,
+            filename
+        ]
     )
+
 
     if result.returncode != 0:
 
         print()
-        print(f"❌ Error while running {filename}")
-        print("🛑 Pipeline stopped.")
+        print(
+            f"ERROR: {filename} failed."
+        )
 
-        sys.exit(1)
+        print(
+            f"Return code: {result.returncode}"
+        )
 
+        print()
+
+        return False
+
+
+    return True
+
+
+# ============================================================
+# START
+# ============================================================
 
 print()
-print("🛡️ DOCSHIELD - AI DOCUMENT PROTECTION SYSTEM")
+print("=" * 60)
+print("DOCSHIELD - AI DOCUMENT PROTECTION SYSTEM")
+print("=" * 60)
+
 print()
-print("Starting complete document protection pipeline...")
+print(
+    "Starting complete document protection pipeline..."
+)
 
 
-# Step 1 — Document preprocessing
-run_step(
+# ============================================================
+# STEP 1
+# ============================================================
+
+if not run_step(
     "preprocess.py",
-    "STEP 1 — DOCUMENT PREPROCESSING"
-)
+    "STEP 1 - DOCUMENT PREPROCESSING"
+):
+
+    exit(1)
 
 
-# Step 2 — Perspective correction
-run_step(
+# ============================================================
+# STEP 2
+# ============================================================
+
+if not run_step(
     "perspective.py",
-    "STEP 2 — PERSPECTIVE CORRECTION"
-)
+    "STEP 2 - PERSPECTIVE CORRECTION"
+):
+
+    exit(1)
 
 
-# Step 3 — OCR
-run_step(
+# ============================================================
+# STEP 3
+# ============================================================
+
+if not run_step(
     "ocr.py",
-    "STEP 3 — OCR TEXT EXTRACTION"
-)
+    "STEP 3 - OCR TEXT EXTRACTION"
+):
+
+    exit(1)
 
 
-# Step 4 — Sensitive data detection
-run_step(
+# ============================================================
+# STEP 4
+# ============================================================
+
+if not run_step(
     "detector.py",
-    "STEP 4 — SENSITIVE DATA DETECTION"
-)
+    "STEP 4 - SENSITIVE DATA DETECTION"
+):
+
+    exit(1)
 
 
-# Step 5 — Visual redaction
-run_step(
+# ============================================================
+# STEP 5
+# ============================================================
+
+if not run_step(
     "visual_redactor.py",
-    "STEP 5 — VISUAL REDACTION"
+    "STEP 5 - VISUAL REDACTION"
+):
+
+    exit(1)
+
+
+# ============================================================
+# COMPLETE
+# ============================================================
+
+print()
+print("=" * 60)
+print("DOCSHIELD PIPELINE COMPLETED SUCCESSFULLY!")
+print("=" * 60)
+print()
+
+print(
+    "Protected document:"
 )
 
+print(
+    "sample/protected_document.png"
+)
 
-print()
-print("=" * 60)
-print("🎉 DOCSHIELD PIPELINE COMPLETED SUCCESSFULLY!")
-print("=" * 60)
-print()
-print("🔐 Protected document:")
-print("sample/protected_document.png")
 print()

@@ -1,32 +1,35 @@
 [
     {
-        "type": "NAME",
-        "value": "Rahul Kumar",
+        "type": "Name",
+        "value": "Twitterpreet Singh",
         "box": [
-            41,
-            152,
-            272,
-            187
-        ]
+            463,
+            243,
+            912,
+            294
+        ],
+        "confidence": "high"
     },
     {
-        "type": "ID",
-        "value": "TEST-123456",
+        "type": "Name",
+        "value": "Vikram Aditya Singh",
         "box": [
-            41,
-            214,
-            221,
-            250
-        ]
+            459,
+            367,
+            1080,
+            420
+        ],
+        "confidence": "high"
     },
     {
-        "type": "DATE OF BIRTH",
-        "value": "01/01/2000",
+        "type": "Aadhaar",
+        "value": "994133210012",
         "box": [
-            42,
-            275,
-            231,
-            310
-        ]
+            456,
+            782,
+            966,
+            851
+        ],
+        "confidence": "high"
     }
 ]
