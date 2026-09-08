@@ -100,16 +100,18 @@ def screen_document(document_id: str):
             "document_id": document_id,
 
             "decision": risk["classification"],
-            "risk_score": risk["risk_score"],
-            "similarity_score": comparison["similarity_score"],
-            "difference_percentage": comparison["difference_percentage"],
-            "message": risk["message"],
+"risk_score": risk["risk_score"],
+"similarity_score": comparison["similarity_score"],
+"difference_percentage": comparison["difference_percentage"],
+"message": risk["message"],
+
+"evidence_breakdown": risk["evidence_breakdown"],
 
             "ocr": {
-                "reference": reference_ocr,
-                "submitted": submitted_ocr
-            },
-            "field_comparison": field_comparison,
+        "reference": reference_ocr,
+        "submitted": submitted_ocr
+},
+        "field_comparison": field_comparison,
 
             "tamper_evidence": {
                 "suspicious_region_count":
