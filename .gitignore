@@ -216,3 +216,14 @@ __marimo__/
 
 # Streamlit
 .streamlit/secrets.toml
+
+# DocumentShield local runtime files
+backend/uploads/
+backend/tamper_outputs/
+uploads/
+desktop.ini
+
+# Accidental root-level dependency file
+/requirements.txt
+# Temporary local reference document used during development
+backend/reference_documents/reference.jpeg
